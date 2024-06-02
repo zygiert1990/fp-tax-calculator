@@ -1,6 +1,7 @@
 package importer
 
 import cats.data.Validated.Valid
+import importer.Validations._
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -8,7 +9,7 @@ import java.time.LocalDateTime
 
 class ValidationsTest extends AnyFunSpec with Matchers {
 
-  val format = "dd.MM.yyyy HH:mm:ss"
+  private val format = "dd.MM.yyyy HH:mm:ss"
 
   describe("Validations") {
     describe("Parsing local date time") {
@@ -16,7 +17,7 @@ class ValidationsTest extends AnyFunSpec with Matchers {
         // given
         val value = "15.12.2022 16:55:21"
         // when
-        val result = Validations.canParseToLocalDateTime(value, format)
+        val result = canParseToLocalDateTime(value, format)
         // then
         result shouldEqual Valid(LocalDateTime.of(2022, 12, 15, 16, 55, 21))
       }
@@ -25,7 +26,7 @@ class ValidationsTest extends AnyFunSpec with Matchers {
         // given
         val value = "15.12.2022T16:55:21"
         // when
-        val result = Validations.canParseToLocalDateTime(value, format)
+        val result = canParseToLocalDateTime(value, format)
         // then
         result.isInvalid shouldBe true
       }
@@ -36,7 +37,7 @@ class ValidationsTest extends AnyFunSpec with Matchers {
         // given
         val value = "100"
         // when
-        val result = Validations.canParseToBigDecimal(value)
+        val result = canParseToBigDecimal(value)
         // then
         result shouldEqual Valid(BigDecimal(100))
       }
@@ -45,7 +46,7 @@ class ValidationsTest extends AnyFunSpec with Matchers {
         // given
         val value = "100f"
         // when
-        val result = Validations.canParseToBigDecimal(value)
+        val result = canParseToBigDecimal(value)
         // then
         result.isInvalid shouldBe true
       }
