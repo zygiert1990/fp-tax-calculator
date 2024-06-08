@@ -10,7 +10,7 @@ import importer.Importer.{ExanteImporter, MultipleCurrency, SingleCurrency}
 import importer.Routes
 import org.http4s.Charset.`UTF-8`
 import org.http4s.EntityDecoder.collectBinary
-import org.http4s.{Charset, EntityDecoder, HttpRoutes, MediaRange, QueryParamDecoder}
+import org.http4s.{Charset, EntityDecoder, HttpRoutes, MediaRange, QueryParamDecoder, Response}
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.ember.server._
@@ -22,8 +22,13 @@ import scala.jdk.StreamConverters._
 import cats.implicits._
 import importer.Model.{ReportRowRepresentation, RowRepresentation}
 import model.Model.{Broker, Currency}
+import persistence.DbClient
+import persistence.Model.Event
+import mongo4cats.circe._
+import io.circe.generic.auto._
 
 import java.io.InputStream
+import java.nio.charset.CharacterCodingException
 
 object Routes {
 
@@ -41,82 +46,52 @@ object Routes {
           case Some(currency) =>
             resolveSingleCurrencyImporter(broker)
               .fold(
-                fa => BadRequest(fa),
-                fb => fb.flatMap { importer =>
-                  req.as[ByteVector].flatMap { bv =>
-                    val report = bv.decodeString(importer.charset)
-                    report.fold(
-                      fa => BadRequest(fa.getMessage),
-                      fb => {
-                        val rowRepresentations = fb.lines().toScala(LazyList)
-                          .drop(1)
-                          .filter(line => !line.isBlank)
-                          .map(importer.toReportRowRepresentation)
-                          .toList
-                          .sequence
-                        rowRepresentations match {
-                          case Valid(rows) =>
-                            val events = importer.toEvents(rows, currency)
-                            Ok("anything")
-                          case Invalid(nec) => BadRequest(nec.mkString_("\n"))
-                        }
-                      }
-                    )
-                  }
+                error => BadRequest(error),
+                importer => {
+                  for {
+                    request   <- req.as[ByteVector]
+                    report    = request.decodeString(importer.charset)
+                    res       <- process(report, importer, currency)
+                  } yield res
                 }
               )
-          case None => ???
+          case None => BadRequest("asldljaskdl")
         }
-      /*req.as[ByteVector]
-        .flatMap { bv =>
-          broker.value match {
-            case xtb@"XTB" =>
-              val report = bv.decodeString(Charset.`UTF-8`.nioCharset)
-              report.fold(
-                fa => BadRequest(fa.toString),
-                fb => {
-                  val rows = fb.lines().toScala(LazyList)
-                    .drop(1)
-                    .filter(line => !line.isBlank)
-                    .traverse(Importer.XTBImporter.toReportRowRepresentation)
-
-                  rows match {
-                    case Valid(rowRepresentations) =>
-                      currency match {
-                        case Some(symbol) =>
-                          val events = XTBImporter.toEvents(rowRepresentations, symbol)
-                          Ok("anyhting")
-                        case None         => BadRequest(s"Currency has to be provided for $xtb broker")
-                      }
-                    case Invalid(nec)              => BadRequest(nec.mkString_("\n"))
-                  }
-                }
-              )
-            case "Exante" =>
-              val report = bv.decodeString(Charset.`UTF-16`.nioCharset)
-              report.fold(
-                fa => BadRequest(fa.toString),
-                fb => {
-                  val rows = fb.lines().toScala(LazyList)
-                    .drop(1)
-                    .map(Importer.ExanteImporter.toReportRowRepresentation)
-                    .toList
-                  Ok("anyhting")
-                }
-              )
-          }
-        }*/
     }
   }
 
-  def resolveSingleCurrencyImporter(broker: Broker): Either[String, IO[SingleCurrency[ReportRowRepresentation]]] = {
+  private def process(either: Either[CharacterCodingException, String], importer: SingleCurrency[ReportRowRepresentation], currency: Currency): IO[Response[IO]] = {
+    either.fold(
+      error       => BadRequest(error.getMessage),
+      fileContent => {
+        val validatedRowRepresentations = fileContent.lines().toScala(LazyList)
+          .drop(1)
+          .filter(line => !line.isBlank)
+          .map(importer.toReportRowRepresentation)
+          .toList
+          .sequence
+
+        validatedRowRepresentations match {
+          case Valid(rr)  =>
+            val validatedEvents = importer.toEvents(rr, currency)
+            validatedEvents match {
+              case Valid(events) => DbClient.saveAll(events).flatMap(_ => Ok("any"))
+              case Invalid(e)    => BadRequest(e.mkString_("\n"))
+            }
+          case Invalid(e) => BadRequest(e.mkString_("\n"))
+        }
+      }
+    )
+  }
+
+  private def resolveSingleCurrencyImporter(broker: Broker): Either[String, SingleCurrency[ReportRowRepresentation]] = {
     broker.value match {
-      case "XTB" => Right(IO(XTBImporter.asInstanceOf[SingleCurrency[ReportRowRepresentation]]))
+      case "XTB" => Right(XTBImporter.asInstanceOf[SingleCurrency[ReportRowRepresentation]])
       case _ => Left(s"Can not find single currency importer for broker: ${broker.value}")
     }
   }
 
-  def resolveMultipleCurrencyImporter[T <: RowRepresentation](broker: Broker): Either[String, IO[MultipleCurrency[_]]] = {
+  private def resolveMultipleCurrencyImporter[T <: RowRepresentation](broker: Broker): Either[String, IO[MultipleCurrency[_]]] = {
     broker.value match {
       case "Exante" => Right(ExanteImporter.pure[IO])
       case _ => Left(s"Can not find single currency importer for broker: ${broker.value}")
