@@ -1,40 +1,40 @@
 package importer
 
 import cats.data.ValidatedNec
-import importer.Model.{ExanteReportRow, RowRepresentation}
-import model.Model.Currency
-import org.http4s.Charset
+import cats.effect._
+import cats.implicits._
+import importer.ImporterDefinition.ReportImporter
+import importer.Model.ReportRowRepresentation
+import org.http4s.Response
+import org.http4s.dsl.io._
+import persistence.DbClient
 import persistence.Model.Event
+import scodec.bits.ByteVector
 
-import java.nio.charset.{Charset => JCharset}
+import scala.jdk.StreamConverters._
 
 object Importer {
 
-  sealed trait Command
-  case class Deposit() extends Command
-
-  sealed trait ReportImporter[T<:RowRepresentation] {
-    val charset: JCharset = Charset.`UTF-8`.nioCharset
-
-    def toReportRowRepresentation(reportRow: String): ValidatedNec[String, T]
-  }
-  trait MultipleCurrency[T<:RowRepresentation] extends ReportImporter[T] {
-    def toEvents(rows: List[T]): ValidatedNec[String, List[Event]]
-  }
-  trait SingleCurrency[T<:RowRepresentation] extends ReportImporter[T] {
-    def toEvents(rows: List[T], currency: Currency): ValidatedNec[String, List[Event]]
+  def process(request: ByteVector, importer: ReportImporter[ReportRowRepresentation])
+             (rowsToEventsFunction: List[ReportRowRepresentation] => ValidatedNec[String, List[Event]]): IO[Response[IO]] = {
+    request.decodeString(importer.charset)
+      .fold(
+        error => BadRequest(error.getMessage),
+        fileContent => toRowRepresentations(fileContent, importer).toEither
+          .flatMap(rows => rowsToEventsFunction(rows).toEither)
+          .map(events => DbClient.saveAllEvents(events).flatMap(_ => Ok("Report imported.")))
+          .leftMap(e => BadRequest(e.mkString_("\n")))
+          .fold(x => x, x => x)
+      )
   }
 
-  object ExanteImporter extends MultipleCurrency[ExanteReportRow] {
-    override val charset: JCharset = Charset.`UTF-16`.nioCharset
-
-    override def toEvents(rows: List[ExanteReportRow]): ValidatedNec[String, List[Event]] = ???
-
-    override def toReportRowRepresentation(reportRow: String): ValidatedNec[String, ExanteReportRow] = {
-      val values = reportRow.split("\\t")
-      ExanteReportRow(values(1))
-      ???
-    }
+  private def toRowRepresentations(fileContent: String, importer: ReportImporter[ReportRowRepresentation]): ValidatedNec[String, List[ReportRowRepresentation]] = {
+    fileContent.lines().toScala(LazyList)
+      .drop(1)
+      .filter(line => !line.isBlank)
+      .map(importer.toReportRowRepresentation)
+      .toList
+      .sequence
   }
 
 }

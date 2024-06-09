@@ -11,7 +11,7 @@ object DbClient {
 
   val mongoClient: Resource[IO, MongoClient[IO]] = MongoClient.fromConnectionString[IO]("mongodb://172.17.0.2:27017")
 
-  def saveAll(events: List[Event]): IO[Unit] = {
+  def saveAllEvents(events: List[Event]): IO[Unit] = {
     mongoClient.use { client =>
       for {
         db    <- client.getDatabase("local")

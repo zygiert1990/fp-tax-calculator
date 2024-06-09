@@ -2,7 +2,7 @@ package importer
 
 import cats.data.ValidatedNec
 import cats.implicits._
-import importer.Importer.SingleCurrency
+import importer.ImporterDefinition.SingleCurrency
 import importer.Model.XTBReportRow
 import model.Model.{Broker, Currency, Instrument}
 import persistence.Model._

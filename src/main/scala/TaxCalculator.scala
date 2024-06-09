@@ -19,7 +19,7 @@ object TaxCalculator extends IOApp {
       .withPort(port"8080")
       .withHttpApp(Routes.importerRoutes.orNotFound)
       .withErrorHandler {
-        case t: Throwable => Ok(t.getMessage)
+        case t: Throwable => BadRequest(t.getMessage)
       }
       .build
       .use(_ => IO.never)

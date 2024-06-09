@@ -1,7 +1,5 @@
 package importer
 
-import cats.Show
-
 import java.time.LocalDateTime
 
 object Model {
