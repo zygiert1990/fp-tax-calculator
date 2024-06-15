@@ -1,6 +1,6 @@
-package persistence
+package com.zygiert.persistence
 
-import model.Model.{Broker, Currency, Instrument}
+import com.zygiert.model.Model.{Broker, Currency, Instrument}
 
 import java.time.LocalDateTime
 

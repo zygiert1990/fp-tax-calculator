@@ -1,10 +1,10 @@
-package importer
+package com.zygiert.importer
 
 import cats.data.ValidatedNec
-import importer.Model.{ExanteReportRow, RowRepresentation}
-import model.Model.Currency
+import com.zygiert.importer.Model.{ExanteReportRow, RowRepresentation}
+import com.zygiert.model.Model.Currency
+import com.zygiert.persistence.Model.Event
 import org.http4s.Charset
-import persistence.Model.Event
 
 import java.nio.charset.{Charset => JCharset}
 

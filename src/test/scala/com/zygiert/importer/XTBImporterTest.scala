@@ -1,12 +1,12 @@
-package importer
+package com.zygiert.importer
 
 import cats.data.Validated.Valid
-import importer.Model.XTBReportRow
-import importer.XTBImporter._
-import model.Model.{Broker, Currency, Instrument}
+import com.zygiert.importer.Model.XTBReportRow
+import com.zygiert.importer.XTBImporter._
+import com.zygiert.model.Model.{Broker, Currency, Instrument}
+import com.zygiert.persistence.Model._
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
-import persistence.Model._
 
 import java.time.LocalDateTime
 

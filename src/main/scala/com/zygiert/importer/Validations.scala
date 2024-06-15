@@ -1,4 +1,4 @@
-package importer
+package com.zygiert.importer
 
 import cats.data.{NonEmptyChain, Validated, ValidatedNec}
 

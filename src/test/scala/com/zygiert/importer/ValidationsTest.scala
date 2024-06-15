@@ -1,7 +1,7 @@
-package importer
+package com.zygiert.importer
 
 import cats.data.Validated.Valid
-import importer.Validations._
+import com.zygiert.importer.Validations._
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 
