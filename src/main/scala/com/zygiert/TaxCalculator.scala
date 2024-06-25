@@ -24,13 +24,13 @@ object TaxCalculator extends IOApp {
 
     val mongoClient: Resource[IO, MongoClient[IO]] = MongoClient.fromConnectionString[IO]("mongodb://172.17.0.2:27017")
 //    val clientFromServerAddress = MongoClient.fromServerAddress[IO](ServerAddress("172.17.0.2", 27017))
-    val liveEnvironment: ImporterEnvironment[IO] = new LiveEventRepository[IO](mongoClient)
+    val importerEnvironment: ImporterEnvironment[IO] = new LiveEventRepository[IO](mongoClient)
 
     EmberServerBuilder
       .default[IO]
       .withHost(ipv4"0.0.0.0")
       .withPort(port"8080")
-      .withHttpApp(new ImporterRoutes[IO].importerRoutes(liveEnvironment).orNotFound)
+      .withHttpApp(new ImporterRoutes[IO].routes(importerEnvironment).orNotFound)
       .withErrorHandler {
         case t: Throwable => BadRequest(t.getMessage)
       }

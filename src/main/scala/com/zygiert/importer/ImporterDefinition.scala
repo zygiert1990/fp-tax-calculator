@@ -1,8 +1,8 @@
 package com.zygiert.importer
 
 import cats.data.ValidatedNec
-import com.zygiert.importer.Model.{ExanteReportRow, RowRepresentation}
-import com.zygiert.model.Model.Currency
+import com.zygiert.importer.Model.RowRepresentation
+import com.zygiert.model.Model.{Broker, Currency}
 import com.zygiert.persistence.Model.Event
 import org.http4s.Charset
 
@@ -16,22 +16,10 @@ object ImporterDefinition {
     def toReportRowRepresentation(reportRow: String): ValidatedNec[String, T]
   }
   trait MultipleCurrency[T<:RowRepresentation] extends ReportImporter[T] {
-    def toEvents(rows: List[T]): ValidatedNec[String, List[Event]]
+    def toEvents(rows: List[T], broker: Broker): ValidatedNec[String, List[Event]]
   }
   trait SingleCurrency[T<:RowRepresentation] extends ReportImporter[T] {
-    def toEvents(rows: List[T], currency: Currency): ValidatedNec[String, List[Event]]
-  }
-
-  object ExanteImporter extends MultipleCurrency[ExanteReportRow] {
-    override val charset: JCharset = Charset.`UTF-16`.nioCharset
-
-    override def toEvents(rows: List[ExanteReportRow]): ValidatedNec[String, List[Event]] = ???
-
-    override def toReportRowRepresentation(reportRow: String): ValidatedNec[String, ExanteReportRow] = {
-      val values = reportRow.split("\\t")
-      ExanteReportRow(values(1))
-      ???
-    }
+    def toEvents(rows: List[T], broker: Broker, currency: Currency): ValidatedNec[String, List[Event]]
   }
 
 }

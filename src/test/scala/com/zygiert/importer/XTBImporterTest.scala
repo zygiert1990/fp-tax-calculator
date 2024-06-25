@@ -70,7 +70,7 @@ class XTBImporterTest extends AnyFunSpec with Matchers {
           // given
           val rows = List(deposit)
           // when
-          val result = toEvents(rows, currency)
+          val result = toEvents(rows, broker, currency)
           // then
           result shouldEqual Valid(List(DepositMade(dateTime, broker, amount, currency)))
         }
@@ -79,7 +79,7 @@ class XTBImporterTest extends AnyFunSpec with Matchers {
           // given
           val rows = List(withdrawal)
           // when
-          val result = toEvents(rows, currency)
+          val result = toEvents(rows, broker, currency)
           // then
           result shouldEqual Valid(List(WithdrawalDone(dateTime, broker, amount, currency)))
         }
@@ -88,7 +88,7 @@ class XTBImporterTest extends AnyFunSpec with Matchers {
           // given
           val rows = List(stockPurchase)
           // when
-          val result = toEvents(rows, currency)
+          val result = toEvents(rows, broker, currency)
           // then
           result shouldEqual Valid(List(AssetBought(dateTime, broker, instrument, 2, amount, 0, currency)))
         }
@@ -97,7 +97,7 @@ class XTBImporterTest extends AnyFunSpec with Matchers {
           // given
           val rows = List(stockSale)
           // when
-          val result = toEvents(rows, currency)
+          val result = toEvents(rows, broker, currency)
           // then
           result shouldEqual Valid(List(AssetSold(dateTime, broker, instrument, 2, amount, 0, currency)))
         }
@@ -106,7 +106,7 @@ class XTBImporterTest extends AnyFunSpec with Matchers {
           // given
           val rows = List(dividend)
           // when
-          val result = toEvents(rows, currency)
+          val result = toEvents(rows, broker, currency)
           // then
           result shouldEqual Valid(List(DividendPaid(dateTime, broker, instrument, amount, currency)))
         }
@@ -115,7 +115,7 @@ class XTBImporterTest extends AnyFunSpec with Matchers {
           // given
           val rows = List(witholdTax)
           // when
-          val result = toEvents(rows, currency)
+          val result = toEvents(rows, broker, currency)
           // then
           result shouldEqual Valid(List(WitholdTaxCharged(dateTime, broker, amount, currency)))
         }
@@ -124,7 +124,7 @@ class XTBImporterTest extends AnyFunSpec with Matchers {
           // given
           val rows = List(deposit, stockPurchase, dividend, witholdTax, stockSale, withdrawal)
           // when
-          val result = toEvents(rows, currency)
+          val result = toEvents(rows, broker, currency)
           // then
           result.isValid shouldBe true
           result.map(events => events.size shouldEqual 6)
@@ -136,7 +136,7 @@ class XTBImporterTest extends AnyFunSpec with Matchers {
             // given
             val rows = List(stockPurchaseBase("OPEN 2 @ 70.34"))
             // when
-            val result = toEvents(rows, currency)
+            val result = toEvents(rows, broker, currency)
             // then
             result.isInvalid shouldBe true
           }
@@ -145,7 +145,7 @@ class XTBImporterTest extends AnyFunSpec with Matchers {
             // given
             val rows = List(stockPurchaseBase("OPEN BUY 2  70.34"))
             // when
-            val result = toEvents(rows, currency)
+            val result = toEvents(rows, broker, currency)
             // then
             result.isInvalid shouldBe true
           }
@@ -155,7 +155,7 @@ class XTBImporterTest extends AnyFunSpec with Matchers {
             // given
             val rows = List(stockSaleBase("OPEN 2 @ 70.34"))
             // when
-            val result = toEvents(rows, currency)
+            val result = toEvents(rows, broker, currency)
             // then
             result.isInvalid shouldBe true
           }
@@ -164,7 +164,7 @@ class XTBImporterTest extends AnyFunSpec with Matchers {
             // given
             val rows = List(stockSaleBase("OPEN BUY 2  70.34"))
             // when
-            val result = toEvents(rows, currency)
+            val result = toEvents(rows, broker, currency)
             // then
             result.isInvalid shouldBe true
           }
@@ -173,7 +173,7 @@ class XTBImporterTest extends AnyFunSpec with Matchers {
           // given
           val rows = List(rowRepresentation("unknown")(validComment))
           // when
-          val result = toEvents(rows, currency)
+          val result = toEvents(rows, broker, currency)
           // then
           result.isInvalid shouldBe true
         }

@@ -13,11 +13,9 @@ object XTBImporter extends SingleCurrency[XTBReportRow] {
 
   private val dateTimeFormat = "dd.MM.yyyy HH:mm:ss"
   private val rowValuesSeparator = ";"
-  private val broker = Broker("XTB")
 
-  override def toEvents(rows: List[XTBReportRow], currency: Currency): ValidatedNec[String, List[Event]] = {
-    rows.traverse(row => toEvent(row, currency).toValidatedNec)
-  }
+  override def toEvents(rows: List[XTBReportRow], broker: Broker, currency: Currency): ValidatedNec[String, List[Event]] =
+    rows.traverse(row => toEvent(row, broker, currency).toValidatedNec)
 
   override def toReportRowRepresentation(reportRow: String): ValidatedNec[String, XTBReportRow] = {
     val values = reportRow.split(rowValuesSeparator)
@@ -27,7 +25,7 @@ object XTBImporter extends SingleCurrency[XTBReportRow] {
       }
   }
 
-  private def toEvent(row: XTBReportRow, currency: Currency): Either[String, Event] = {
+  private def toEvent(row: XTBReportRow, broker: Broker, currency: Currency): Either[String, Event] = {
     row.operationType match {
         case "Deposit"             => Right(DepositMade(row.dateTime, broker, row.amount, currency))
         case "Withdrawal"          => Right(WithdrawalDone(row.dateTime, broker, row.amount, currency))
