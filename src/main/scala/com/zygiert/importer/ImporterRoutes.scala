@@ -22,10 +22,7 @@ class ImporterRoutes[F[_] : Concurrent] extends Http4sDsl[F] {
       case req@POST -> Root / "import" :? BrokerQueryParamMatcher(broker) +& OptionalCurrencyQueryParamDecoder(optionalCurrency) =>
         req.as[ByteVector].flatMap { report =>
           ImportHandler.handleImport(ImportHandler.ImportRequest(env, broker, optionalCurrency, report))
-            .fold(
-              errorMessage => BadRequest(errorMessage),
-              _ => Ok("Import successful!")
-            )
+            .fold(errorMessage => BadRequest(errorMessage), _ => Ok("Import successful!"))
         }
     }
   }

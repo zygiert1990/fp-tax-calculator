@@ -19,11 +19,15 @@ object ImportHandler {
   def handleImport[F[_] : Concurrent](importRequest: ImportRequest[F]): Either[String, F[Unit]] = {
     importRequest.optionalCurrency match {
       case Some(value) =>
-        val importer = resolveSingleCurrencyBroker(importRequest.broker)
-        doImport(importRequest)(importer)(rows => importer.toEvents(rows, importRequest.broker, value))
+        resolveSingleCurrencyBroker(importRequest.broker)
+          .fold(
+            errorMessage => Left(errorMessage),
+            (importer: SingleCurrency[RowRepresentation]) => doImport(importRequest)(importer)(rows => importer.toEvents(rows, importRequest.broker, value)))
       case None =>
-        val importer = resolveMultipleCurrencyBroker(importRequest.broker)
-        doImport(importRequest)(importer)(rows => importer.toEvents(rows, importRequest.broker))
+        resolveMultipleCurrencyBroker(importRequest.broker)
+          .fold(
+            errorMessage => Left(errorMessage),
+            (importer: MultipleCurrency[RowRepresentation]) => doImport(importRequest)(importer)(rows => importer.toEvents(rows, importRequest.broker)))
     }
   }
 
@@ -41,16 +45,16 @@ object ImportHandler {
       )
   }
 
-  private def resolveSingleCurrencyBroker[T <: RowRepresentation](broker: Broker): SingleCurrency[T] = {
+  private def resolveSingleCurrencyBroker[T <: RowRepresentation](broker: Broker): Either[String, SingleCurrency[T]] = {
     broker.symbol match {
-      case "XTB" => XTBImporter.asInstanceOf[SingleCurrency[T]]
-      case _ => throw new IllegalArgumentException(s"Can not find single currency importer implementation for broker: ${broker.symbol}")
+      case "XTB" => Right(XTBImporter.asInstanceOf[SingleCurrency[T]])
+      case _ => Left(s"Can not find single currency importer implementation for broker: ${broker.symbol}")
     }
   }
 
-  private def resolveMultipleCurrencyBroker[T <: RowRepresentation](broker: Broker): MultipleCurrency[T] = {
+  private def resolveMultipleCurrencyBroker[T <: RowRepresentation](broker: Broker): Either[String, MultipleCurrency[T]] = {
     broker.symbol match {
-      case _ => throw new IllegalArgumentException(s"Can not find multiple currency importer implementation for broker: ${broker.symbol}")
+      case _ => Left(s"Can not find multiple currency importer implementation for broker: ${broker.symbol}")
     }
   }
 
