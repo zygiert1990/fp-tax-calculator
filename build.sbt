@@ -28,6 +28,6 @@ libraryDependencies ++= Seq(
   "io.github.kirill5k"  %% "mongo4cats-core"     % mongo4catsVersion,
   "io.github.kirill5k"  %% "mongo4cats-circe"    % mongo4catsVersion,
 
-  "org.scalatest"       %% "scalatest"           % scalaTestVersion % Test
-
+  "org.scalatest"       %% "scalatest"           % scalaTestVersion   % Test,
+  "io.github.kirill5k"  %% "mongo4cats-embedded" % mongo4catsVersion  % Test
 )

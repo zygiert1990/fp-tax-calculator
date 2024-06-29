@@ -30,6 +30,13 @@ class LiveEventRepository[F[_]: Concurrent](mongoClient: Resource[F, MongoClient
         } yield ()
       }
 
-    override def findAll: F[List[Event]] = ???
+    override def findAll: F[List[Event]] =
+      mongoClient.use { client =>
+        for {
+          db      <- client.getDatabase("local")
+          coll    <- db.getCollectionWithCodec[Event]("events")
+          events  <- coll.find.all
+        } yield events.toList
+      }
   }
 }
