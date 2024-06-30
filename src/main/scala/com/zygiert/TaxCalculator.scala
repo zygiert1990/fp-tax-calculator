@@ -1,12 +1,13 @@
 package com.zygiert
 
 import cats.effect._
-import cats.effect.kernel.Resource
 import com.comcast.ip4s._
 import com.zygiert.TaxCalculator.Environments.ImporterEnvironment
+import com.zygiert.config.Config
+import com.zygiert.importer.ImporterRoutes
 import com.zygiert.persistence.{EventRepository, LiveEventRepository}
-import importer.ImporterRoutes
 import mongo4cats.client.MongoClient
+import mongo4cats.models.client.ServerAddress
 import org.http4s.dsl.io._
 import org.http4s.ember.server._
 import org.typelevel.log4cats.LoggerFactory
@@ -22,8 +23,10 @@ object TaxCalculator extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
 
-    val mongoClient: Resource[IO, MongoClient[IO]] = MongoClient.fromConnectionString[IO]("mongodb://172.17.0.2:27017")
-//    val clientFromServerAddress = MongoClient.fromServerAddress[IO](ServerAddress("172.17.0.2", 27017))
+    val config: Config = Config.read
+    Config.log(config)
+
+    val mongoClient = MongoClient.fromServerAddress[IO](ServerAddress(config.mongo.host, config.mongo.port))
     val importerEnvironment: ImporterEnvironment[IO] = new LiveEventRepository[IO](mongoClient)
 
     EmberServerBuilder
