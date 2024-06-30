@@ -1,17 +1,13 @@
 package com.zygiert.importer
 
 import cats.effect.IO
-import com.zygiert.TaxCalculator.Environments.ImporterEnvironment
+import com.zygiert.importer.TestFixtures.{testEnv, testReport}
 import com.zygiert.model.Model.{Broker, Currency}
-import com.zygiert.persistence.EventRepository
-import com.zygiert.persistence.Model._
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
-import scodec.bits.ByteVector
 
 class ImportHandlerTest extends AnyFunSpec with Matchers {
 
-  private val testEnv: ImporterEnvironment[IO] = new TestEventRepository
   private val currencyOption = Some(Currency("USD"))
   private val xtbValidReportPath = "/test-importer/validXTB.csv"
   private val xtbInvalidRowsReportPath = "/test-importer/invalidRowsXTB.csv"
@@ -64,17 +60,4 @@ class ImportHandlerTest extends AnyFunSpec with Matchers {
   private def importRequest(broker: Broker, reportPath: String, currencyOption: Option[Currency] = currencyOption): ImportHandler.ImportRequest[IO] =
     ImportHandler.ImportRequest[IO](testEnv, broker, currencyOption, testReport(reportPath))
 
-  private def testReport(filePath: String): ByteVector = ByteVector(getClass.getResourceAsStream(filePath).readAllBytes())
-
-}
-
-class TestEventRepository extends EventRepository[IO] {
-
-  override val eventRepository: Repository = new Repository {
-    override def saveAll(events: List[Event]): IO[Unit] = IO.println {
-      s"Successfully stored: ${events.size} events"
-    }
-
-    override def findAll: IO[List[Event]] = ???
-  }
 }
