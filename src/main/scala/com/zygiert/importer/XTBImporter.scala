@@ -21,7 +21,7 @@ object XTBImporter extends SingleCurrency[XTBReportRow] {
     val values = reportRow.split(rowValuesSeparator)
     (Validations.canParseToLocalDateTime(values(2), dateTimeFormat), Validations.canParseToBigDecimal(values(5)))
       .mapN { (dateTime, amount) =>
-        XTBReportRow(values(1), dateTime, values(3), values(4), amount.abs)
+        XTBReportRow(values(0), values(1), dateTime, values(3), values(4), amount.abs)
       }
   }
 
@@ -33,7 +33,7 @@ object XTBImporter extends SingleCurrency[XTBReportRow] {
         case "Stocks/ETF sale"     => tryExtractAmount(row).map(amount => AssetSold(row.dateTime, broker, Instrument(row.symbol), amount, row.amount, 0, currency))
         case "Dividend"            => Right(DividendPaid(row.dateTime, broker, Instrument(row.symbol), row.amount, currency))
         case "Withholding tax"     => Right(WitholdTaxCharged(row.dateTime, broker, row.amount, currency))
-        case _                     => Left(s"Can not recognize operation type for row: ${row.toString}")
+        case _                     => Left(s"Can not recognize operation type for row: $row")
       }
   }
 

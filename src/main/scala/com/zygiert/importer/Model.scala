@@ -5,9 +5,11 @@ import java.time.LocalDateTime
 object Model {
 
   sealed trait RowRepresentation
-  type ReportRowRepresentation <:RowRepresentation
 
-  case class XTBReportRow(operationType: String,
+  type ReportRowRepresentation <: RowRepresentation
+
+  case class XTBReportRow(id: String,
+                          operationType: String,
                           dateTime: LocalDateTime,
                           symbol: String,
                           comment: String,

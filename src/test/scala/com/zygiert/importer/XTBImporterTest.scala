@@ -12,6 +12,7 @@ import java.time.LocalDateTime
 
 class XTBImporterTest extends AnyFunSpec with Matchers {
 
+  private val id = "333299201"
   private val dateTime = LocalDateTime.of(2022, 12, 15, 16, 55, 21)
   private val currencySymbol = "USD"
   private val currency = Currency(currencySymbol)
@@ -191,6 +192,7 @@ class XTBImporterTest extends AnyFunSpec with Matchers {
 
   private def rowRepresentation(operation: String)(comment: String) = {
     XTBReportRow(
+      id,
       operation,
       dateTime,
       instrumentSymbol,
