@@ -10,9 +10,15 @@ class ImportHandlerTest extends AnyFunSpec with Matchers {
 
   private val currencyOption = Some(Currency("USD"))
   private val xtbValidReportPath = "/test-importer/validXTB.csv"
+  private val xtbInvalidHeaderPath = "/test-importer/invalidHeaderXTB.csv"
   private val xtbInvalidRowsReportPath = "/test-importer/invalidRowsXTB.csv"
   private val xtbInvalidEventsReportPath = "/test-importer/invalidEventsXTB.csv"
+  private val exanteValidReportPath = "/test-importer/validExante.csv"
+  private val exanteInvalidHeaderPath = "/test-importer/invalidHeaderExante.csv"
+  private val exanteInvalidRowsReportPath = "/test-importer/invalidRowsExante.csv"
+  private val exanteInvalidEventsReportPath = "/test-importer/invalidEventsExante.csv"
   private val xtb = Broker("XTB")
+  private val exante = Broker("Exante")
 
   describe("ImportHandler") {
     describe("with currency") {
@@ -25,7 +31,14 @@ class ImportHandlerTest extends AnyFunSpec with Matchers {
           // then
           result.isLeft shouldBe true
         }
-
+        it("should fail when invalid header") {
+          // given
+          val request = importRequest(xtb, xtbInvalidHeaderPath)
+          // when
+          val result = ImportHandler.handleImport(request)
+          // then
+          result.isLeft shouldBe true
+        }
         it("should fail when can not transform rows from report") {
           // given
           val request = importRequest(xtb, xtbInvalidRowsReportPath)
@@ -34,7 +47,6 @@ class ImportHandlerTest extends AnyFunSpec with Matchers {
           // then
           result.isLeft shouldBe true
         }
-
         it("should fail when can not create events from report") {
           // given
           val request = importRequest(xtb, xtbInvalidEventsReportPath)
@@ -54,6 +66,55 @@ class ImportHandlerTest extends AnyFunSpec with Matchers {
           result.isRight shouldBe true
         }
       }
+    }
+    describe("without currency") {
+      describe("failed") {
+        it("should fail when can not find implementation for requested broker") {
+          // given
+          val request = importRequest(Broker("nonExisting"), exanteValidReportPath, None)
+          // when
+          val result = ImportHandler.handleImport(request)
+          // then
+          result.isLeft shouldBe true
+        }
+        it("should fail when invalid header") {
+          // given
+          val request = importRequest(exante, exanteInvalidHeaderPath, None)
+          // when
+          val result = ImportHandler.handleImport(request)
+          // then
+          result.isLeft shouldBe true
+        }
+        it("should fail when can not transform rows from report") {
+          // given
+          val request = importRequest(exante, exanteInvalidRowsReportPath, None)
+          // when
+          val result = ImportHandler.handleImport(request)
+          // then
+          result.isLeft shouldBe true
+        }
+
+        // todo not implemented yet
+//        it("should fail when can not create events from report") {
+//          // given
+//          val request = importRequest(xtb, xtbInvalidEventsReportPath)
+//          // when
+//          val result = ImportHandler.handleImport(request)
+//          // then
+//          result.isLeft shouldBe true
+//        }
+      }
+      // todo not implemented yet
+//      describe("success") {
+//        it("should import report") {
+//          // given
+//          val request = importRequest(xtb, xtbValidReportPath)
+//          // when
+//          val result = ImportHandler.handleImport(request)
+//          // then
+//          result.isRight shouldBe true
+//        }
+//      }
     }
   }
 

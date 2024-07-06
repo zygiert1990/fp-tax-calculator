@@ -1,6 +1,6 @@
 package com.zygiert.importer
 
-import cats.data.ValidatedNec
+import cats.data.{NonEmptyChain, ValidatedNec}
 import cats.effect.kernel.Concurrent
 import cats.implicits._
 import com.zygiert.TaxCalculator.Environments.ImporterEnvironment
@@ -37,12 +37,22 @@ object ImportHandler {
     importRequest.report.decodeString(importer.charset)
       .fold(
         error => Left(error.getMessage),
-        fileContent => toRowRepresentations(fileContent)(importer).toEither.flatMap(rows => rowsMappingFunction(rows).toEither)
-          .fold(
-            errorChain => Left(errorChain.mkString_("\n")),
-            events => Right(importRequest.env.eventRepository.saveAll(events))
-          )
+        fileContent =>
+          validateHeader(fileContent)(importer)
+            .flatMap(content => toRowRepresentations(content)(importer).toEither)
+            .flatMap(rows => rowsMappingFunction(rows).toEither)
+            .fold(
+              errorChain => Left(errorChain.mkString_("\n")),
+              events => Right(importRequest.env.eventRepository.saveAll(events))
+            )
       )
+  }
+
+  private def validateHeader[T <: RowRepresentation, F[_] : Concurrent](fileContent: String)(importer: ReportImporter[T]): Either[NonEmptyChain[String], String] = {
+    Either.cond(
+      fileContent.lines().toScala(LazyList).take(1).exists(header => header.equals(importer.validHeader)),
+      fileContent,
+      NonEmptyChain(s"Invalid headers! Header should look like ${importer.validHeader}"))
   }
 
   private def resolveSingleCurrencyBroker[T <: RowRepresentation](broker: Broker): Either[String, SingleCurrency[T]] = {

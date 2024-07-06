@@ -14,6 +14,8 @@ object XTBImporter extends SingleCurrency[XTBReportRow] {
   private val dateTimeFormat = "dd.MM.yyyy HH:mm:ss"
   private val rowValuesSeparator = ";"
 
+  override val validHeader: String = "ID;Type;Time;Symbol;Comment;Amount"
+
   override def toEvents(rows: List[XTBReportRow], broker: Broker, currency: Currency): ValidatedNec[String, List[Event]] =
     rows.traverse(row => toEvent(row, broker, currency).toValidatedNec)
 

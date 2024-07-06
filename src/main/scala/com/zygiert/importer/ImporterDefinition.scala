@@ -12,6 +12,7 @@ object ImporterDefinition {
 
   sealed trait ReportImporter[T<:RowRepresentation] {
     val charset: JCharset = Charset.`UTF-8`.nioCharset
+    val validHeader: String
 
     def toReportRowRepresentation(reportRow: String): ValidatedNec[String, T]
   }

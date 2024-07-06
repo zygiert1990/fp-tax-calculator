@@ -17,6 +17,8 @@ object ExanteImporter extends MultipleCurrency[ExanteReportRow] {
   private val dateTimeFormat = "yyyy-MM-dd HH:mm:ss"
   private val rowValuesSeparator = "\t"
 
+  override val validHeader: String = "\"Transaction ID\"\t\"Account ID\"\t\"Symbol ID\"\t\"ISIN\"\t\"Operation type\"\t\"When\"\t\"Sum\"\t\"Asset\"\t\"EUR equivalent\"\t\"Comment\"\t\"UUID\"\t\"Parent UUID\""
+
   override def toEvents(rows: List[ExanteReportRow], broker: Broker): ValidatedNec[String, List[Event]] = {
     Invalid(NonEmptyChain("Not implemented yet!"))
   }
