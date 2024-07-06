@@ -29,9 +29,9 @@ object XTBImporter extends SingleCurrency[XTBReportRow] {
     row.operationType match {
         case "Deposit"             => Right(DepositMade(row.dateTime, broker, row.amount, currency))
         case "Withdrawal"          => Right(WithdrawalDone(row.dateTime, broker, row.amount, currency))
-        case "Stocks/ETF purchase" => tryExtractAmount(row).map(amount => AssetBought(row.dateTime, broker, Instrument(row.symbol), amount, row.amount, 0, currency))
-        case "Stocks/ETF sale"     => tryExtractAmount(row).map(amount => AssetSold(row.dateTime, broker, Instrument(row.symbol), amount, row.amount, 0, currency))
-        case "Dividend"            => Right(DividendPaid(row.dateTime, broker, Instrument(row.symbol), row.amount, currency))
+        case "Stocks/ETF purchase" => tryExtractAmount(row).map(amount => AssetBought(row.dateTime, broker, Instrument(row.instrumentSymbol), amount, row.amount, 0, currency))
+        case "Stocks/ETF sale"     => tryExtractAmount(row).map(amount => AssetSold(row.dateTime, broker, Instrument(row.instrumentSymbol), amount, row.amount, 0, currency))
+        case "Dividend"            => Right(DividendPaid(row.dateTime, broker, Instrument(row.instrumentSymbol), row.amount, currency))
         case "Withholding tax"     => Right(WitholdTaxCharged(row.dateTime, broker, row.amount, currency))
         case _                     => Left(s"Can not recognize operation type for row: $row")
       }

@@ -6,6 +6,9 @@ import java.time.LocalDateTime
 
 object Model {
 
+  /*
+    Please keep in mind that I'm not going to implement event sourcing here.
+   */
   sealed trait Event
 
   final case class DepositMade(dateTime: LocalDateTime, broker: Broker, value: BigDecimal, currency: Currency) extends Event

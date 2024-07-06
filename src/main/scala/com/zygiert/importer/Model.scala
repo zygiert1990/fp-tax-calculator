@@ -11,10 +11,16 @@ object Model {
   case class XTBReportRow(id: String,
                           operationType: String,
                           dateTime: LocalDateTime,
-                          symbol: String,
+                          instrumentSymbol: String,
                           comment: String,
                           amount: BigDecimal) extends RowRepresentation
 
-  case class ExanteReportRow(transactionId: String) extends RowRepresentation
+  case class ExanteReportRow(id: String,
+                             instrumentSymbol: String,
+                             operationType: String,
+                             dateTime: LocalDateTime,
+                             value: BigDecimal,
+                             asset: String,
+                             comment: String) extends RowRepresentation
 
 }

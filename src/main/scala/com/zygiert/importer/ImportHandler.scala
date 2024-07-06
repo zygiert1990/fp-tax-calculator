@@ -54,6 +54,7 @@ object ImportHandler {
 
   private def resolveMultipleCurrencyBroker[T <: RowRepresentation](broker: Broker): Either[String, MultipleCurrency[T]] = {
     broker.symbol match {
+      case "Exante" => Right(ExanteImporter.asInstanceOf[MultipleCurrency[T]])
       case _ => Left(s"Can not find multiple currency importer implementation for broker: ${broker.symbol}")
     }
   }
