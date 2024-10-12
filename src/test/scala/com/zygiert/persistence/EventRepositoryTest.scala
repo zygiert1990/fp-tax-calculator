@@ -11,7 +11,7 @@ import org.scalatest.wordspec.AsyncWordSpec
 
 import java.time.LocalDateTime
 
-class LiveEventRepositoryTest extends AsyncWordSpec with Matchers with EmbeddedMongo {
+class EventRepositoryTest extends AsyncWordSpec with Matchers with EmbeddedMongo {
 
   override val mongoPort: Int = 12345
 
@@ -19,7 +19,7 @@ class LiveEventRepositoryTest extends AsyncWordSpec with Matchers with EmbeddedM
     "create and retrieve documents from a db" in withRunningEmbeddedMongo {
       // given
       val client = MongoClient.fromConnectionString[IO]("mongodb://localhost:12345")
-      val repository = new LiveEventRepository[IO](client).eventRepository
+      val repository = EventRepositoryImpl(client)
       val events = List(
         DepositMade(LocalDateTime.now(), Broker("broker"), BigDecimal(10), Currency("USD")),
         WithdrawalDone(LocalDateTime.now(), Broker("broker"), BigDecimal(10), Currency("USD")))

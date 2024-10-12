@@ -3,13 +3,17 @@ package com.zygiert.persistence
 import cats.effect.IO
 import com.zygiert.persistence.Model.Event
 
-class TestEventRepository extends EventRepository[IO] {
+class TestEventRepository extends EventRepository {
 
-  override val eventRepository: Repository = new Repository {
-    override def saveAll(events: List[Event]): IO[Unit] = IO.println {
-      s"Successfully stored: ${events.size} events"
-    }
+  override def saveAll(events: List[Event]): IO[Unit] = IO.println {
+    s"Successfully stored: ${events.size} events"
+  }
 
-    override def findAll: IO[List[Event]] = ???
+  override def findAll: IO[List[Event]] = ???
+}
+
+object TestEventRepository {
+  def apply(): EventRepository = {
+    new TestEventRepository
   }
 }

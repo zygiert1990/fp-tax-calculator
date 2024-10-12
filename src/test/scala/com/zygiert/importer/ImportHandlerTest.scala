@@ -1,8 +1,8 @@
 package com.zygiert.importer
 
-import cats.effect.IO
-import com.zygiert.importer.TestFixtures.{testEnv, testReport}
+import com.zygiert.importer.TestFixtures.testReport
 import com.zygiert.model.Model.{Broker, Currency}
+import com.zygiert.persistence.TestEventRepository
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -19,6 +19,7 @@ class ImportHandlerTest extends AnyFunSpec with Matchers {
   private val exanteInvalidEventsReportPath = "/test-importer/invalidEventsExante.csv"
   private val xtb = Broker("XTB")
   private val exante = Broker("Exante")
+  private val importHandler = ImportHandler(TestEventRepository())
 
   describe("ImportHandler") {
     describe("with currency") {
@@ -27,7 +28,7 @@ class ImportHandlerTest extends AnyFunSpec with Matchers {
           // given
           val request = importRequest(Broker("nonExisting"), xtbValidReportPath)
           // when
-          val result = ImportHandler.handleImport(request)
+          val result = importHandler.handleImport(request)
           // then
           result.isLeft shouldBe true
         }
@@ -35,7 +36,7 @@ class ImportHandlerTest extends AnyFunSpec with Matchers {
           // given
           val request = importRequest(xtb, xtbInvalidHeaderPath)
           // when
-          val result = ImportHandler.handleImport(request)
+          val result = importHandler.handleImport(request)
           // then
           result.isLeft shouldBe true
         }
@@ -43,7 +44,7 @@ class ImportHandlerTest extends AnyFunSpec with Matchers {
           // given
           val request = importRequest(xtb, xtbInvalidRowsReportPath)
           // when
-          val result = ImportHandler.handleImport(request)
+          val result = importHandler.handleImport(request)
           // then
           result.isLeft shouldBe true
         }
@@ -51,7 +52,7 @@ class ImportHandlerTest extends AnyFunSpec with Matchers {
           // given
           val request = importRequest(xtb, xtbInvalidEventsReportPath)
           // when
-          val result = ImportHandler.handleImport(request)
+          val result = importHandler.handleImport(request)
           // then
           result.isLeft shouldBe true
         }
@@ -61,7 +62,7 @@ class ImportHandlerTest extends AnyFunSpec with Matchers {
           // given
           val request = importRequest(xtb, xtbValidReportPath)
           // when
-          val result = ImportHandler.handleImport(request)
+          val result = importHandler.handleImport(request)
           // then
           result.isRight shouldBe true
         }
@@ -73,7 +74,7 @@ class ImportHandlerTest extends AnyFunSpec with Matchers {
           // given
           val request = importRequest(Broker("nonExisting"), exanteValidReportPath, None)
           // when
-          val result = ImportHandler.handleImport(request)
+          val result = importHandler.handleImport(request)
           // then
           result.isLeft shouldBe true
         }
@@ -81,7 +82,7 @@ class ImportHandlerTest extends AnyFunSpec with Matchers {
           // given
           val request = importRequest(exante, exanteInvalidHeaderPath, None)
           // when
-          val result = ImportHandler.handleImport(request)
+          val result = importHandler.handleImport(request)
           // then
           result.isLeft shouldBe true
         }
@@ -89,36 +90,36 @@ class ImportHandlerTest extends AnyFunSpec with Matchers {
           // given
           val request = importRequest(exante, exanteInvalidRowsReportPath, None)
           // when
-          val result = ImportHandler.handleImport(request)
+          val result = importHandler.handleImport(request)
           // then
           result.isLeft shouldBe true
         }
 
         // todo not implemented yet
-//        it("should fail when can not create events from report") {
-//          // given
-//          val request = importRequest(xtb, xtbInvalidEventsReportPath)
-//          // when
-//          val result = ImportHandler.handleImport(request)
-//          // then
-//          result.isLeft shouldBe true
-//        }
+        //        it("should fail when can not create events from report") {
+        //          // given
+        //          val request = importRequest(xtb, xtbInvalidEventsReportPath)
+        //          // when
+        //          val result = importHandler.handleImport(request)
+        //          // then
+        //          result.isLeft shouldBe true
+        //        }
       }
       // todo not implemented yet
-//      describe("success") {
-//        it("should import report") {
-//          // given
-//          val request = importRequest(xtb, xtbValidReportPath)
-//          // when
-//          val result = ImportHandler.handleImport(request)
-//          // then
-//          result.isRight shouldBe true
-//        }
-//      }
+      //      describe("success") {
+      //        it("should import report") {
+      //          // given
+      //          val request = importRequest(xtb, xtbValidReportPath)
+      //          // when
+      //          val result = importHandler.handleImport(request)
+      //          // then
+      //          result.isRight shouldBe true
+      //        }
+      //      }
     }
   }
 
-  private def importRequest(broker: Broker, reportPath: String, currencyOption: Option[Currency] = currencyOption): ImportHandler.ImportRequest[IO] =
-    ImportHandler.ImportRequest[IO](testEnv, broker, currencyOption, testReport(reportPath))
+  private def importRequest(broker: Broker, reportPath: String, currencyOption: Option[Currency] = currencyOption): ImportRequest =
+    ImportRequest(broker, currencyOption, testReport(reportPath))
 
 }

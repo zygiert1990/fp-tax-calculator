@@ -1,22 +1,20 @@
 package com.zygiert.importer
 
 import cats.data.{NonEmptyChain, ValidatedNec}
-import cats.effect.kernel.Concurrent
+import cats.effect.IO
 import cats.implicits._
-import com.zygiert.TaxCalculator.Environments.ImporterEnvironment
 import com.zygiert.importer.ImporterDefinition.{MultipleCurrency, ReportImporter, SingleCurrency}
 import com.zygiert.importer.Model.RowRepresentation
 import com.zygiert.model.Model.{Broker, Currency}
+import com.zygiert.persistence.EventRepository
 import com.zygiert.persistence.Model.Event
 import scodec.bits.ByteVector
 
 import scala.jdk.StreamConverters._
 
-object ImportHandler {
+class ImportHandler private(private val eventRepository: EventRepository) {
 
-  case class ImportRequest[F[_] : Concurrent](env: ImporterEnvironment[F], broker: Broker, optionalCurrency: Option[Currency], report: ByteVector)
-
-  def handleImport[F[_] : Concurrent](importRequest: ImportRequest[F]): Either[String, F[Unit]] = {
+  def handleImport(importRequest: ImportRequest): Either[String, IO[Unit]] = {
     importRequest.optionalCurrency match {
       case Some(value) =>
         resolveSingleCurrencyBroker(importRequest.broker)
@@ -31,9 +29,9 @@ object ImportHandler {
     }
   }
 
-  private def doImport[F[_] : Concurrent, T <: RowRepresentation](importRequest: ImportRequest[F])
-                                                                 (importer: ReportImporter[T])
-                                                                 (rowsMappingFunction: List[T] => ValidatedNec[String, List[Event]]): Either[String, F[Unit]] = {
+  private def doImport[T <: RowRepresentation](importRequest: ImportRequest)
+                                              (importer: ReportImporter[T])
+                                              (rowsMappingFunction: List[T] => ValidatedNec[String, List[Event]]): Either[String, IO[Unit]] = {
     importRequest.report.decodeString(importer.charset)
       .fold(
         error => Left(error.getMessage),
@@ -43,12 +41,12 @@ object ImportHandler {
             .flatMap(rows => rowsMappingFunction(rows).toEither)
             .fold(
               errorChain => Left(errorChain.mkString_("\n")),
-              events => Right(importRequest.env.eventRepository.saveAll(events))
+              events => Right(eventRepository.saveAll(events))
             )
       )
   }
 
-  private def validateHeader[T <: RowRepresentation, F[_] : Concurrent](fileContent: String)(importer: ReportImporter[T]): Either[NonEmptyChain[String], String] = {
+  private def validateHeader[T <: RowRepresentation](fileContent: String)(importer: ReportImporter[T]): Either[NonEmptyChain[String], String] = {
     Either.cond(
       fileContent.lines().toScala(LazyList).take(1).exists(header => header.equals(importer.validHeader)),
       fileContent,
@@ -78,3 +76,11 @@ object ImportHandler {
       .sequence
   }
 }
+
+object ImportHandler {
+  def apply(eventRepository: EventRepository): ImportHandler = {
+    new ImportHandler(eventRepository)
+  }
+}
+
+case class ImportRequest(broker: Broker, optionalCurrency: Option[Currency], report: ByteVector)

@@ -118,7 +118,7 @@ class XTBImporterTest extends AnyFunSpec with Matchers {
           // when
           val result = toEvents(rows, broker, currency)
           // then
-          result shouldEqual Valid(List(WitholdTaxCharged(dateTime, broker, amount, currency)))
+          result shouldEqual Valid(List(WithholdTaxCharged(dateTime, broker, amount, currency)))
         }
 
         it("should create multiple events") {
@@ -181,13 +181,21 @@ class XTBImporterTest extends AnyFunSpec with Matchers {
       }
     }
   }
+
   private def stockPurchase = stockPurchaseBase(validComment)
+
   private def stockPurchaseBase: String => XTBReportRow = rowRepresentation(stocksEtfPurchase)
+
   private def deposit = rowRepresentation("Deposit")(validComment)
+
   private def withdrawal = rowRepresentation("Withdrawal")(validComment)
+
   private def stockSale = stockSaleBase(validComment)
+
   private def stockSaleBase: String => XTBReportRow = rowRepresentation(stocksEtfSale)
+
   private def dividend = rowRepresentation("Dividend")(validComment)
+
   private def witholdTax = rowRepresentation("Withholding tax")(validComment)
 
   private def rowRepresentation(operation: String)(comment: String) = {
