@@ -3,7 +3,6 @@ package com.zygiert.persistence
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import com.zygiert.persistence.Model.Event
-import io.circe.generic.auto._
 import mongo4cats.circe._
 import mongo4cats.client.MongoClient
 
@@ -36,7 +35,5 @@ class EventRepositoryImpl private(private val mongoClient: Resource[IO, MongoCli
 }
 
 object EventRepositoryImpl {
-  def apply(mongoClient: Resource[IO, MongoClient[IO]]): EventRepository = {
-    new EventRepositoryImpl(mongoClient)
-  }
+  def apply(mongoClient: Resource[IO, MongoClient[IO]]): EventRepository = new EventRepositoryImpl(mongoClient)
 }

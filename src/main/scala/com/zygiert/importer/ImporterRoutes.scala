@@ -14,8 +14,8 @@ object ImporterRoutes {
 
 class ImporterRoutes private(private val importHandler: ImportHandler) extends Http4sDsl[IO] {
 
-  implicit val optionalCurrencyQueryParamMatcher: QueryParamDecoder[Currency] = QueryParamDecoder[String].map(Currency)
-  implicit val brokerQueryParamMatcher: QueryParamDecoder[Broker] = QueryParamDecoder[String].map(Broker)
+  implicit val optionalCurrencyQueryParamMatcher: QueryParamDecoder[Currency] = QueryParamDecoder[String].map(Currency.apply)
+  implicit val brokerQueryParamMatcher: QueryParamDecoder[Broker] = QueryParamDecoder[String].map(Broker.apply)
 
   private object BrokerQueryParamMatcher extends QueryParamDecoderMatcher[Broker]("broker")
 
