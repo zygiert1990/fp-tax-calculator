@@ -32,7 +32,8 @@ object Model {
   object Event {
     implicit val decodeEvent: Decoder[Event] = deriveDecoder[Event]
     implicit val encodeEvent: Encoder.AsObject[Event] = deriveEncoder[Event]
-    implicit val eventCodedProvider: MongoCodecProvider[Event] = deriveCirceCodecProvider
+
+    implicit val eventCodedProvider: MongoCodecProvider[Event] = deriveCirceCodecProvider[Event]
   }
 
 }
