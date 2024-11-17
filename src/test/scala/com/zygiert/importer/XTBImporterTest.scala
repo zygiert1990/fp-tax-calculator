@@ -2,9 +2,9 @@ package com.zygiert.importer
 
 import cats.data.Validated.Valid
 import com.zygiert.importer.Model.XTBReportRow
-import com.zygiert.importer.XTBImporter._
+import com.zygiert.importer.XTBImporter.*
 import com.zygiert.model.Model.{Broker, Currency, Instrument}
-import com.zygiert.persistence.Model._
+import com.zygiert.persistence.Model.*
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 

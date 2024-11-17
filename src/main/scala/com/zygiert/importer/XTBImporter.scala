@@ -1,11 +1,11 @@
 package com.zygiert.importer
 
 import cats.data.ValidatedNec
-import cats.implicits._
+import cats.implicits.*
 import com.zygiert.importer.ImporterDefinition.SingleCurrency
 import com.zygiert.importer.Model.XTBReportRow
 import com.zygiert.model.Model.{Broker, Currency, Instrument}
-import com.zygiert.persistence.Model._
+import com.zygiert.persistence.Model.*
 
 import scala.util.Try
 

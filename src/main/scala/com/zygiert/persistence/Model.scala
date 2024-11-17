@@ -1,10 +1,6 @@
 package com.zygiert.persistence
 
 import com.zygiert.model.Model.{Broker, Currency, Instrument}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.{Decoder, Encoder}
-import mongo4cats.circe.deriveCirceCodecProvider
-import mongo4cats.codecs.MongoCodecProvider
 
 import java.time.LocalDateTime
 
@@ -28,12 +24,5 @@ object Model {
   final case class WithholdTaxCharged(dateTime: LocalDateTime, broker: Broker, value: BigDecimal, currency: Currency) extends Event
 
   final case class DividendPaid(dateTime: LocalDateTime, broker: Broker, instrument: Instrument, value: BigDecimal, currency: Currency) extends Event
-
-  object Event {
-    implicit val decodeEvent: Decoder[Event] = deriveDecoder[Event]
-    implicit val encodeEvent: Encoder.AsObject[Event] = deriveEncoder[Event]
-
-    implicit val eventCodedProvider: MongoCodecProvider[Event] = deriveCirceCodecProvider[Event]
-  }
 
 }

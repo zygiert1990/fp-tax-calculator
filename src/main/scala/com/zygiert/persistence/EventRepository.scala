@@ -2,9 +2,13 @@ package com.zygiert.persistence
 
 import cats.effect.IO
 import cats.effect.kernel.Resource
+import com.zygiert.model.Model.Broker
 import com.zygiert.persistence.Model.Event
-import mongo4cats.circe._
+import io.circe.derivation.Configuration
+import io.circe.generic.auto.*
+import mongo4cats.circe.*
 import mongo4cats.client.MongoClient
+import mongo4cats.operations.Projection
 
 trait EventRepository {
 
@@ -29,7 +33,7 @@ class EventRepositoryImpl private(private val mongoClient: Resource[IO, MongoCli
       for {
         db <- client.getDatabase("local")
         coll <- db.getCollectionWithCodec[Event]("events")
-        events <- coll.find.all
+        events <- coll.find.projection(Projection.excludeId).all
       } yield events.toList
     }
 }
